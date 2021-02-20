@@ -250,7 +250,7 @@ root
 
 I am root!
 
-![i am root](./iamroot.jpg)
+![i am root](./screenshots/iamroot.jpg)
 
 **Disclaimer:** I apologize, I know that was cheesy, but I couldn't resist.
 
